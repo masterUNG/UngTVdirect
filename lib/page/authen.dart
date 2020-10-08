@@ -1,34 +1,46 @@
 import 'dart:convert';
+import 'dart:io';
 
+import 'package:dio/adapter.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:ungtvdirect/models/user_model.dart';
+import 'package:ungtvdirect/models/result_login_model.dart';
+
 import 'package:ungtvdirect/page/my_service.dart';
 import 'package:ungtvdirect/page/register.dart';
-import 'package:ungtvdirect/utility/my_constant.dart';
+
 import 'package:ungtvdirect/utility/my_style.dart';
 import 'package:ungtvdirect/utility/normal_dialog.dart';
 
 class Authen extends StatefulWidget {
+  final user, password;
+  Authen({Key key, this.user, this.password}) : super(key: key);
   @override
   _AuthenState createState() => _AuthenState();
 }
 
 class _AuthenState extends State<Authen> {
-  bool redEyebol = true, statusLogin = false;
+  bool redEyebol = true, statusLogin = true;
   String user, password;
 
   @override
   void initState() {
     super.initState();
-    // checkPreferance();
+
+    var check = widget.user;
+    if (check != null) {
+      user = widget.user;
+      password = widget.password;
+      checkAuthentication();
+    }
+    checkPreferance();
   }
 
   Future<Null> checkPreferance() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
-    if (preferences.getString('Name') != null) {
+    if (preferences.getString('Token') != null) {
       routeToService();
     } else {
       setState(() {
@@ -72,10 +84,11 @@ class _AuthenState extends State<Authen> {
 
   TextButton buildTextButton() => TextButton(
         onPressed: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => Register(),
-            )),
+          context,
+          MaterialPageRoute(
+            builder: (context) => Register(),
+          ),
+        ),
         child: Text(
           'New Register',
           style: MyStyle().pinkText(),
@@ -168,26 +181,7 @@ class _AuthenState extends State<Authen> {
     if (user == null || user.isEmpty || password == null || password.isEmpty) {
       normalDialog(context, 'Have Space ? Please Fill All Blank');
     } else {
-      String urlAPI =
-          '${MyConstant().domain}/TVdirect/getUserWhereUserUng.php?isAdd=true&User=$user';
-      await Dio().get(urlAPI).then((value) {
-        if (value.toString() == 'null') {
-          normalDialog(context, 'ไม่มี $user นี้ ใน ฐานข้อมูล เขาเรา');
-        } else {
-          print('value = $value');
-          var result = json.decode(value.data);
-          print('result = $result');
-          for (var json in result) {
-            print('json = $json');
-            UserModel model = UserModel.fromJson(json);
-            if (password == model.password) {
-              savePreferance(model);
-            } else {
-              normalDialog(context, 'Password False ? Please Try Again');
-            }
-          }
-        }
-      });
+      checkAuthentication();
     }
   }
 
@@ -200,10 +194,45 @@ class _AuthenState extends State<Authen> {
         (route) => false);
   }
 
-  Future<Null> savePreferance(UserModel model) async {
+  Future<Null> savePreferance(ResultLoginModel model) async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
-    // preferences.setString('Name', model.name);
-    // preferences.setString('id', model.id);
+    preferences.setString('Name', model.data.name);
+    preferences.setDouble('Lat', model.data.lat);
+    preferences.setDouble('Lng', model.data.lng);
+    preferences.setString('Token', model.data.token);
+    preferences.setString('Avatar', model.data.avatar);
+
     routeToService();
+  }
+
+  Future<Null> checkAuthentication() async {
+    Map<String, String> map = Map();
+    map['username'] = user;
+    map['password'] = password;
+    print('map --> $map');
+
+    Dio dio = Dio();
+    (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate =
+        (HttpClient client) {
+      client.badCertificateCallback =
+          (X509Certificate x509certificate, String string, int i) => true;
+      return client;
+    };
+
+    String url = 'https://api.tvdirect.tv/t/login';
+
+    await dio.post(url, data: json.encode(map)).then((value) {
+      print('value ==>> $value');
+      var result = value.data;
+      print('status = ${result['status']}');
+      if (result['status']) {
+        ResultLoginModel model = ResultLoginModel.fromJson(result);
+        String token = model.data.token;
+        print('token = $token');
+        savePreferance(model);
+      } else {
+        normalDialog(context, result['data']);
+      }
+    });
   }
 }

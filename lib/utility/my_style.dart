@@ -5,6 +5,8 @@ class MyStyle {
   Color darkColor = Color(0xff3b3d00);
   Color primaryColors = Color(0xff686716);
 
+  Widget showQuestion() => Image.asset('images/question.png');
+
   Widget showProgress() {
     return Center(child: CircularProgressIndicator());
   }

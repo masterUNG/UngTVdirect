@@ -7,7 +7,9 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import 'package:location/location.dart';
+import 'package:ungtvdirect/models/res_authen_model.dart';
 import 'package:ungtvdirect/models/user_model.dart';
+import 'package:ungtvdirect/page/authen.dart';
 import 'package:ungtvdirect/utility/my_constant.dart';
 import 'package:ungtvdirect/utility/my_style.dart';
 import 'package:ungtvdirect/utility/normal_dialog.dart';
@@ -179,10 +181,6 @@ class _RegisterState extends State<Register> {
         name: name, username: user, password: password, lat: lat, lng: lng);
 
     Map<String, dynamic> map = model.toJson();
-    Map<String, String> header = {
-      "Content-type": "application/json",
-      "Accept": "application/json"
-    };
 
     Dio dio = Dio();
     (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate =
@@ -193,20 +191,14 @@ class _RegisterState extends State<Register> {
     };
     await dio.post(urlAPI, data: json.encode(map)).then((value) {
       print('value ==>> $value');
-    });
-  }
-
-  Future<Null> checkUser() async {
-    String urlAPI =
-        '${MyConstant().domain}/TVdirect/getUserWhereUserUng.php?isAdd=true&User=$user';
-    await Dio().get(urlAPI).then((value) {
-      String result = value.toString();
-      print('result = $result');
-      if (result == 'null') {
-        registerThread();
+      ResAuthenModel model = ResAuthenModel.fromJson(value.data);
+      if (model.status) {
+        Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => Authen(user: user, password: password,),), (route) => false);
       } else {
-        normalDialog(context, '$user มีคนใช้ไป แว้วววว');
+        normalDialog(context, '$user มีคนอื่น ใช้ไปแล้ว กรุณาเปลี่ยนใหม่ ?');
       }
     });
   }
+
+  
 }
