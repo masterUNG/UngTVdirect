@@ -1,30 +1,27 @@
 class UserModel {
-  String id;
   String name;
-  String user;
+  String username;
   String password;
-  String lat;
-  String lng;
+  double lat;
+  double lng;
 
-  UserModel({this.id, this.name, this.user, this.password, this.lat, this.lng});
+  UserModel({this.name, this.username, this.password, this.lat, this.lng});
 
   UserModel.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
-    name = json['Name'];
-    user = json['User'];
-    password = json['Password'];
-    lat = json['Lat'];
-    lng = json['Lng'];
+    name = json['name'];
+    username = json['username'];
+    password = json['password'];
+    lat = json['lat'];
+    lng = json['lng'];
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['Name'] = this.name;
-    data['User'] = this.user;
-    data['Password'] = this.password;
-    data['Lat'] = this.lat;
-    data['Lng'] = this.lng;
+    data['name'] = this.name;
+    data['username'] = this.username;
+    data['password'] = this.password;
+    data['lat'] = this.lat;
+    data['lng'] = this.lng;
     return data;
   }
 }

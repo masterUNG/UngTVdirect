@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ungtvdirect/models/user_model.dart';
 import 'package:ungtvdirect/page/my_service.dart';
 import 'package:ungtvdirect/page/register.dart';
@@ -16,32 +17,53 @@ class Authen extends StatefulWidget {
 }
 
 class _AuthenState extends State<Authen> {
-  bool redEyebol = true;
+  bool redEyebol = true, statusLogin = false;
   String user, password;
+
+  @override
+  void initState() {
+    super.initState();
+    // checkPreferance();
+  }
+
+  Future<Null> checkPreferance() async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    if (preferences.getString('Name') != null) {
+      routeToService();
+    } else {
+      setState(() {
+        statusLogin = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: RadialGradient(
-              colors: <Color>[Colors.white, MyStyle().primaryColors],
-              radius: 1,
-              center: Alignment(0, -0.2)),
-        ),
-        child: Center(
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                buildLogo(),
-                buildText(),
-                buildTextFieldUser(),
-                buildTextFieldPassword(),
-                buildElevatedButton(),
-                buildTextButton()
-              ],
-            ),
+      body: statusLogin ? MyStyle().showProgress() : buildContainer(),
+    );
+  }
+
+  Container buildContainer() {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: RadialGradient(
+            colors: <Color>[Colors.white, MyStyle().primaryColors],
+            radius: 1,
+            center: Alignment(0, -0.2)),
+      ),
+      child: Center(
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              buildLogo(),
+              buildText(),
+              buildTextFieldUser(),
+              buildTextFieldPassword(),
+              buildElevatedButton(),
+              buildTextButton()
+            ],
           ),
         ),
       ),
@@ -159,12 +181,7 @@ class _AuthenState extends State<Authen> {
             print('json = $json');
             UserModel model = UserModel.fromJson(json);
             if (password == model.password) {
-              Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => MyService(),
-                  ),
-                  (route) => false);
+              savePreferance(model);
             } else {
               normalDialog(context, 'Password False ? Please Try Again');
             }
@@ -172,5 +189,21 @@ class _AuthenState extends State<Authen> {
         }
       });
     }
+  }
+
+  void routeToService() {
+    Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (context) => MyService(),
+        ),
+        (route) => false);
+  }
+
+  Future<Null> savePreferance(UserModel model) async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    // preferences.setString('Name', model.name);
+    // preferences.setString('id', model.id);
+    routeToService();
   }
 }

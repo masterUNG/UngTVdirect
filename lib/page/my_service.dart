@@ -9,7 +9,8 @@ class _MyServiceState extends State<MyService> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      
+      appBar: AppBar(),
+      drawer: Drawer(child: ListTile(),),
     );
   }
 }

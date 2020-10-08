@@ -1,7 +1,13 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:dio/adapter.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+
 import 'package:location/location.dart';
+import 'package:ungtvdirect/models/user_model.dart';
 import 'package:ungtvdirect/utility/my_constant.dart';
 import 'package:ungtvdirect/utility/my_style.dart';
 import 'package:ungtvdirect/utility/normal_dialog.dart';
@@ -57,8 +63,8 @@ class _RegisterState extends State<Register> {
               print('Have Space');
               normalDialog(context, 'Have Space ? Please Fill Every Blank');
             } else {
-              // registerThread();
-              checkUser();
+              registerThread();
+              // checkUser();
             }
           },
           child: Icon(Icons.cloud_upload),
@@ -167,15 +173,26 @@ class _RegisterState extends State<Register> {
       );
 
   Future<Null> registerThread() async {
-    String urlAPI =
-        '${MyConstant().domain}/TVdirect/addUserUng.php?isAdd=true&Name=$name&User=$user&Password=$password&Lat=$lat&Lng=$lng';
+    String urlAPI = 'https://api.tvdirect.tv/t/register';
 
-    await Dio().get(urlAPI).then((value) {
-      if (value.toString() == 'true') {
-        Navigator.pop(context);
-      } else {
-        normalDialog(context, 'Please Tru Again');
-      }
+    UserModel model = UserModel(
+        name: name, username: user, password: password, lat: lat, lng: lng);
+
+    Map<String, dynamic> map = model.toJson();
+    Map<String, String> header = {
+      "Content-type": "application/json",
+      "Accept": "application/json"
+    };
+
+    Dio dio = Dio();
+    (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate =
+        (HttpClient client) {
+      client.badCertificateCallback =
+          (X509Certificate x509certificate, String string, int port) => true;
+      return client;
+    };
+    await dio.post(urlAPI, data: json.encode(map)).then((value) {
+      print('value ==>> $value');
     });
   }
 
