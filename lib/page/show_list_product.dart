@@ -3,7 +3,9 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ungtvdirect/models/goods_model.dart';
+import 'package:ungtvdirect/models/sqlite_model.dart';
 import 'package:ungtvdirect/utility/my_style.dart';
+import 'package:ungtvdirect/utility/sqlite_helper.dart';
 
 class ShowListProduct extends StatefulWidget {
   @override
@@ -176,8 +178,20 @@ class _ShowListProductState extends State<ShowListProduct> {
               Row(
                 children: [
                   FlatButton.icon(
-                    onPressed: () {
+                    onPressed: () async {
                       Navigator.pop(context);
+                      SqliteHelper helper = SqliteHelper();
+
+                      SqliteModel sqliteModel = SqliteModel(
+                          goodscode: model.gOODSCODE,
+                          goodsname: model.gOODSNAME,
+                          salseprice: model.sALEPRICE.toString(),
+                          amount: amount.toString(),
+                          sum: ((model.sALEPRICE) * (amount)).toString());
+
+                      print('sqliteModel ==>> ${sqliteModel.toJson().toString()}');
+
+                      await helper.insertValueToDatabase(sqliteModel);
                     },
                     icon: Icon(
                       Icons.check,

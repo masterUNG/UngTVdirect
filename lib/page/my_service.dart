@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ungtvdirect/page/authen.dart';
 import 'package:ungtvdirect/page/information.dart';
+import 'package:ungtvdirect/page/show_cart.dart';
 import 'package:ungtvdirect/page/show_list_product.dart';
 import 'package:ungtvdirect/utility/my_style.dart';
 
@@ -39,7 +40,18 @@ class _MyServiceState extends State<MyService> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(
+        actions: [
+          IconButton(
+            icon: Icon(Icons.shopping_cart),
+            onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ShowCart(),
+                )),
+          ),
+        ],
+      ),
       drawer: Drawer(
         child: Stack(
           children: [
@@ -69,7 +81,7 @@ class _MyServiceState extends State<MyService> {
         },
       );
 
-      ListTile buildListTileInformation() => ListTile(
+  ListTile buildListTileInformation() => ListTile(
         leading: Icon(Icons.info_rounded),
         title: Text('Information'),
         onTap: () {

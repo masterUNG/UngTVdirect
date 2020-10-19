@@ -5,7 +5,7 @@ import 'package:ungtvdirect/models/sqlite_model.dart';
 class SqliteHelper {
   final String nameDatabase = 'tvd.db';
   int version = 1;
-  final String tableDatabase = 'order';
+  final String tableDatabase = 'orderTABLE';
   final String id = 'id';
   final String goodsCode = 'goodscode';
   final String goodName = 'goodsname';
@@ -15,9 +15,10 @@ class SqliteHelper {
 
   Future<Null> initDatabase() async {
     await openDatabase(join(await getDatabasesPath(), nameDatabase),
-        onCreate: (db, version) => db.execute(
-            'CREATE TABLE $tableDatabase ($id INTEGER PRIMARY KEY, $goodsCode TEXT, $goodName TEXT, $salsePrice TEXT, $amount TEXT, $sum TEXT)'),
-        version: version);
+            onCreate: (db, version) => db.execute(
+                'CREATE TABLE $tableDatabase ($id INTEGER PRIMARY KEY, $goodsCode TEXT, $goodName TEXT, $salsePrice TEXT, $amount TEXT, $sum TEXT)'),
+            version: version)
+        .then((value) => print('Create DataSuccess'));
   }
 
   Future<Database> connectedDatabase() async {
@@ -27,11 +28,15 @@ class SqliteHelper {
   Future<Null> insertValueToDatabase(SqliteModel model) async {
     Database database = await connectedDatabase();
     try {
-      database.insert(
-        tableDatabase,
-        model.toJson(),
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
+      await database
+          .insert(
+            tableDatabase,
+            model.toJson(),
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          )
+          .then(
+            (value) => print('insert Success'),
+          );
     } catch (e) {
       print('e InsertSQLite ==> ${e.toString()}');
     }
@@ -48,6 +53,24 @@ class SqliteHelper {
     }
 
     return sqliteModels;
+  }
+
+  Future<Null> deleteValueById(int idDelete) async {
+    Database database = await connectedDatabase();
+    try {
+      await database.delete(tableDatabase, where: '$id = $idDelete').then(
+            (value) => print('Success Delete id==>> $idDelete'),
+          );
+    } catch (e) {}
+  }
+
+  Future<Null> deleteAll() async {
+    Database database = await connectedDatabase();
+    try {
+      await database.delete(tableDatabase).then(
+            (value) => print('Success Delete'),
+          );
+    } catch (e) {}
   }
 
   SqliteHelper() {
