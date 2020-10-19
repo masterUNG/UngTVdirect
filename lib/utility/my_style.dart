@@ -26,5 +26,14 @@ class MyStyle {
         ),
       );
 
+      TextStyle titleH2() => GoogleFonts.dancingScript(
+        textStyle: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          fontStyle: FontStyle.italic,
+          color: darkColor,
+        ),
+      );
+
   MyStyle();
 }
